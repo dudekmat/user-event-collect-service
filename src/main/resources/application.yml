@@ -1,0 +1,10 @@
+spring:
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      bootstrap-servers: localhost:9092
+    properties:
+      max.block.ms: 2000
+      request.timeout.ms: 500
+      max.request.size: 5242880
