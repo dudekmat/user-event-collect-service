@@ -2,6 +2,7 @@ package com.github.dudekmat.usereventcollectservice.infrastructure;
 
 import static java.util.Objects.nonNull;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dudekmat.usereventcollectservice.event.UserEvent;
 import com.github.dudekmat.usereventcollectservice.event.UserEventProducer;
 import com.github.dudekmat.usereventcollectservice.event.UserProductEvent;
@@ -16,7 +17,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class KafkaProducer implements UserEventProducer {
 
-  private final KafkaTemplate<String, UserEvent> kafkaTemplate;
+  private final KafkaTemplate<String, String> kafkaTemplate;
+  private final ObjectMapper objectMapper;
 
   public static final String USER_PRODUCT_EVENT_TOPIC = "user-product-event";
   public static final String USER_SEARCH_EVENT_TOPIC = "user-search-event";
@@ -32,15 +34,19 @@ class KafkaProducer implements UserEventProducer {
   }
 
   private void sendToKafka(String topic, UserEvent userEvent) {
-    kafkaTemplate.send(topic, userEvent.key(), userEvent)
-        .thenAccept(message -> {
-          if (nonNull(message)) {
-            log.info("Sent message={} with offset=[{}]", message,
-                message.getRecordMetadata().offset());
-          }
-        }).exceptionally(ex -> {
-          log.error("Unable to send message due to: {}", ex.getMessage());
-          return null;
-        });
+    try {
+      kafkaTemplate.send(topic, userEvent.key(), objectMapper.writeValueAsString(userEvent))
+          .thenAccept(message -> {
+            if (nonNull(message)) {
+              log.info("Sent message={} with offset=[{}]", message,
+                  message.getRecordMetadata().offset());
+            }
+          }).exceptionally(ex -> {
+            log.error("Unable to send message due to: {}", ex.getMessage());
+            return null;
+          });
+    } catch (Exception ex) {
+      log.error("Unknown error occurred when sending message");
+    }
   }
 }
