@@ -10,6 +10,7 @@ import com.github.dudekmat.usereventcollectservice.event.UserSearchEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,6 +24,7 @@ class KafkaProducer implements UserEventProducer {
   public static final String USER_PRODUCT_EVENT_TOPIC = "user-product-event";
   public static final String USER_SEARCH_EVENT_TOPIC = "user-search-event";
 
+  @Async
   @Override
   public void sendUserEvent(UserEvent userEvent) {
     if (userEvent instanceof UserProductEvent) {
